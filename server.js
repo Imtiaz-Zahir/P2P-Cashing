@@ -1,18 +1,22 @@
-const express = require('express');
-const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+const app = require('express')();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server,{cors: {origin: "*"}});
+const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/test.png');
+const 
+
+
+app.get('/', function(req, res) {
+  res.sendFile(__dirname + '/index.html');
 });
-
 io.on('connection', (socket) => {
-  console.log('a user connected');
-});
+  console.log('user connected');
+  socket.emit()
 
-server.listen(3000, () => {
-  console.log('listening on port : 3000');
+  socket.on('disconnect', function () {
+    console.log('user disconnected');
+  });
+})
+server.listen(port, function() {
+  console.log(`Listening on port ${port}`);
 });
