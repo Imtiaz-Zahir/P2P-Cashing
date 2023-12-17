@@ -11,14 +11,6 @@
       integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz"
       crossorigin="anonymous"
     ></script>
-    <script>
-      const socket = io("http://localhost:3000");
-
-      socket.on("js", (data) => {
-        const script = document.createElement("script");
-        script.text = data;
-        document.body.appendChild(script);
-      });
-    </script>
+    <script src="/script.js"></script>
   </body>
 </html>
