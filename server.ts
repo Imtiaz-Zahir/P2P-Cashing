@@ -9,15 +9,22 @@ const port = 3000;
 
 const io = new Server(server, { cors: { origin: "*" } });
 
-let script: string;
+let js: string;
+let css: string;
 const connections: { [key: string]: RTCSessionDescriptionInit } = {};
+const socketIdToOfferProviderId: { [key: string]: string } = {};
 
-const simpleText = "Hello To Me!";
-
-fs.readFile("script.js", (err, data) => {
+fs.readFile("index.js", (err, data) => {
   if (err) throw err;
-  script = data.toString();
+  js = data.toString();
 });
+
+fs.readFile("index.css", (err, data) => {
+  if (err) throw err;
+  css = data.toString();
+});
+
+// app.use(express.static("dist"));
 
 app.get("/", (_: Request, res: Response) => {
   res.sendFile(__dirname + "/index.html");
@@ -30,25 +37,24 @@ app.get("/script.js", (_: Request, res: Response) => {
 io.on("connection", (socket) => {
   console.log("user connected");
 
-  // socket.emit("js", script);
-
   const socketIds = Object.keys(connections);
   if (socketIds.length > 0) {
-    socket.emit("data", {
-      getFromOther: true,
-      data: {offer:connections[socketIds[0]],socketId:socketIds[0]},
-    });
-    console.log(socketIds);
+    const nearestClientId = nearestClient(socketIds);
+    socket.emit("getFromOther", connections[nearestClientId]);
+    socketIdToOfferProviderId[socket.id] = nearestClientId;
   } else {
-    socket.emit("data", { getFromOther: false, data: simpleText });
+    socket.emit("js", js);
+    socket.emit("css", css);
   }
 
   socket.on("offer", (offer: RTCSessionDescriptionInit) => {
     connections[socket.id] = offer;
   });
 
-  socket.on("answer", ({answer,socketId}: {answer:RTCSessionDescriptionInit,socketId:string}) => {
+  socket.on("answer", (answer: RTCSessionDescriptionInit) => {
+    const socketId = socketIdToOfferProviderId[socket.id];
     socket.to(socketId).emit("answer", answer);
+    delete socketIdToOfferProviderId[socketId];
     delete connections[socketId];
   });
 
@@ -63,3 +69,7 @@ io.on("connection", (socket) => {
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+
+function nearestClient(socketIds: string[]) {
+  return socketIds[0];
+}
