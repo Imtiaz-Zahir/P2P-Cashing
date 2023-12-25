@@ -58,6 +58,11 @@ io.on("connection", (socket) => {
     delete connections[socketId];
   });
 
+  socket.on("fileNotFound",()=>{
+    socket.emit("js", js);
+    socket.emit("css", css);
+  })
+
   socket.on("disconnect", function () {
     console.log("user disconnected");
     if (connections[socket.id]) {
